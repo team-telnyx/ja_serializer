@@ -8,11 +8,11 @@ defimpl JaSerializer.Formatter, for: JaSerializer.Builder.TopLevel do
     |> format_links(struct.links)
     |> Utils.put_if_present("meta", JaSerializer.Formatter.format(struct.meta))
     |> Utils.put_if_present("included", JaSerializer.Formatter.format(struct.included))
-    |> put_version
+    # |> put_version
   end
 
   def format(struct = %{data: nil}) do
-    %{"errors" =>  JaSerializer.Formatter.format(struct.errors)} |> put_version
+    %{"errors" =>  JaSerializer.Formatter.format(struct.errors)} # |> put_version
   end
 
   defp format_links(resource, nil), do: resource
