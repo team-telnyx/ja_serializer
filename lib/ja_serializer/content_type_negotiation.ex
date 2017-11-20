@@ -26,7 +26,7 @@ defmodule JaSerializer.ContentTypeNegotiation do
   plug :verify_accepts
   plug :set_content_type
 
-  @jsonapi "application/vnd.api+json"
+  @jsonapi "application/json"
 
   def verify_content_type(%Plug.Conn{method: "HEAD"} = conn, _o), do: conn
   def verify_content_type(%Plug.Conn{method: "GET"} = conn, _o), do: conn
