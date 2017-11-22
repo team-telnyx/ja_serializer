@@ -10,13 +10,18 @@ defmodule JaSerializer.Builder.TopLevel do
   if Code.ensure_loaded?(Scrivener) do
     def build(context = %{data: %Scrivener.Page{} = page, opts: opts}) do
       opts = Enum.into(opts, %{})
-      # Build scrivener pagination links before we lose page object
-      links = JaSerializer.Builder.ScrivenerLinks.build(context)
-      opts = Map.update(opts, :page, links, &(Map.merge(links, &1)))
+      |> add_scrivener_pagination_links(context, Application.get_env(:ja_serializer, :add_links, true))
 
       # Extract entries from page object
       build(%{context | data: page.entries, opts: opts})
     end
+
+    def add_scrivener_pagination_links(opts, context, true = _add_links) do
+      # Build scrivener pagination links before we lose page object
+      links = JaSerializer.Builder.ScrivenerLinks.build(context)
+      opts = Map.update(opts, :page, links, &(Map.merge(links, &1)))
+    end
+    def add_scrivener_pagination_links(opts, context, false = _add_links), do: opts
   end
 
   def build(%{data: records, conn: conn, serializer: serializer} = context) do
@@ -29,7 +34,7 @@ defmodule JaSerializer.Builder.TopLevel do
     %__MODULE__{}
     |> Map.put(:data, data)
     |> add_included(context)
-    |> add_pagination_links(context)
+    |> add_pagination_links(context, Application.get_env(:ja_serializer, :add_links, true))
     |> add_meta(context[:opts][:meta])
   end
 
@@ -40,10 +45,11 @@ defmodule JaSerializer.Builder.TopLevel do
     end
   end
 
-  defp add_pagination_links(tl, context) do
+  defp add_pagination_links(tl, context, true = _add_links) do
     links = pagination_links(context.opts[:page], context)
     Map.update(tl, :links, links, &(&1 ++ links))
   end
+  defp add_pagination_links(tl, context, false = _add_links), do: tl
 
   defp pagination_links(nil, _), do: []
   defp pagination_links(page, context) do
