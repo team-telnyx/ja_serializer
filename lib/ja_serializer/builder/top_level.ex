@@ -46,8 +46,8 @@ defmodule JaSerializer.Builder.TopLevel do
   end
 
   defp add_pagination_links(tl, context, true = _add_links) do
-    links = pagination_links(context.opts[:page], context)
-    Map.update(tl, :links, links, &(&1 ++ links))
+    meta = pagination_links(context.opts[:page], context)
+    Map.put(tl, :meta, meta)
   end
   defp add_pagination_links(tl, context, false = _add_links), do: tl
 
@@ -55,8 +55,7 @@ defmodule JaSerializer.Builder.TopLevel do
   defp pagination_links(page, context) do
     page
     |> Enum.into(%{})
-    |> Map.take([:self, :first, :next, :prev, :last])
-    |> Enum.map(fn({type, url}) -> Link.build(context, type, url) end)
+    |> Map.take([:total_pages, :total_results, :page_number, :page_size])
   end
 
   defp normalize_opts(opts) do

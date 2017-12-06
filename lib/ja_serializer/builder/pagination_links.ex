@@ -55,21 +55,13 @@ defmodule JaSerializer.Builder.PaginationLinks do
 
     data
     |> links()
-    |> Enum.into(%{}, fn {link, number} ->
-      {link, page_url(number, base, data.size, conn.query_params)}
-    end)
   end
 
-  defp links(%{number: @page_number_origin, total: 1}),
-    do: [self: @page_number_origin]
-  defp links(%{number: @page_number_origin, total: 0}),
-    do: [self: @page_number_origin]
-  defp links(%{number: @page_number_origin, total: t}),
-    do: [self: @page_number_origin, next: 2, last: t]
-  defp links(%{number: total, total: total}),
-    do: [self: total, first: @page_number_origin, prev: total - 1]
-  defp links(%{number: number, total: total}),
-    do: [self: number, first: @page_number_origin, prev: number - 1, next: number + 1, last: total]
+  defp links(data) do
+    [total_pages: data[:total],
+     page_number: data[:number],
+     page_size: data[:size]]
+  end
 
   defp page_url(number, base, size, orginal_params) do
     params =
