@@ -3,7 +3,6 @@ defmodule JaSerializer.Builder.TopLevel do
 
   alias JaSerializer.Builder.ResourceObject
   alias JaSerializer.Builder.Included
-  alias JaSerializer.Builder.Link
 
   defstruct [:data, :errors, :included, :meta, {:links, []}, :jsonapi]
 
@@ -15,15 +14,7 @@ defmodule JaSerializer.Builder.TopLevel do
       # Extract entries from page object
       build(%{context | data: page.entries, opts: opts})
     end
-
-    def add_scrivener_pagination_links(opts, context, true = _add_links) do
-      # Build scrivener pagination links before we lose page object
-      links = JaSerializer.Builder.ScrivenerLinks.build(context)
-      opts = Map.update(opts, :page, links, &(Map.merge(links, &1)))
-    end
-    def add_scrivener_pagination_links(opts, context, false = _add_links), do: opts
   end
-
   def build(%{data: records, conn: conn, serializer: serializer} = context) do
     opts = normalize_opts(context[:opts])
     context = context
@@ -38,6 +29,15 @@ defmodule JaSerializer.Builder.TopLevel do
     |> add_meta(context[:opts][:meta])
   end
 
+  if Code.ensure_loaded?(Scrivener) do
+    def add_scrivener_pagination_links(opts, context, true = _add_links) do
+      # Build scrivener pagination links before we lose page object
+      links = JaSerializer.Builder.ScrivenerLinks.build(context)
+      Map.update(opts, :page, links, &(Map.merge(links, &1)))
+    end
+    def add_scrivener_pagination_links(opts, _context, false = _add_links), do: opts
+  end
+
   defp add_included(tl, %{opts: opts} = context) do
     case opts[:relationships] do
       false -> tl
@@ -49,10 +49,10 @@ defmodule JaSerializer.Builder.TopLevel do
     meta = pagination_links(context.opts[:page], context)
     Map.put(tl, :meta, meta)
   end
-  defp add_pagination_links(tl, context, false = _add_links), do: tl
+  defp add_pagination_links(tl, _context, false = _add_links), do: tl
 
   defp pagination_links(nil, _), do: []
-  defp pagination_links(page, context) do
+  defp pagination_links(page, _context) do
     page
     |> Enum.into(%{})
     |> Map.take([:total_pages, :total_results, :page_number, :page_size])

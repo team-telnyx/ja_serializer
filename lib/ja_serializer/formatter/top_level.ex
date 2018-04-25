@@ -1,8 +1,6 @@
 defimpl JaSerializer.Formatter, for: JaSerializer.Builder.TopLevel do
   alias JaSerializer.Formatter.Utils
 
-  @jsonapi_version "1.0"
-
   def format(struct = %{errors: nil}) do
     %{"data" =>  JaSerializer.Formatter.format(struct.data)}
     |> format_links(struct.links)
@@ -23,9 +21,5 @@ defimpl JaSerializer.Formatter, for: JaSerializer.Builder.TopLevel do
             |> Enum.reject(&(is_nil(&1)))
             |> Enum.into(%{})
     Map.put(resource, "links", links)
-  end
-
-  defp put_version(resource) do
-    resource |> Map.put("jsonapi", %{"version" => @jsonapi_version})
   end
 end

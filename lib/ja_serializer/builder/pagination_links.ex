@@ -1,8 +1,4 @@
 defmodule JaSerializer.Builder.PaginationLinks do
-  import JaSerializer.Formatter.Utils, only: [format_key: 1]
-
-  @page_number_origin Application.get_env(:ja_serializer, :page_number_origin, 1)
-
   @moduledoc """
   Builds JSON-API spec pagination links.
 
@@ -50,9 +46,7 @@ defmodule JaSerializer.Builder.PaginationLinks do
   """
 
   # @spec build(data, conn) :: map, map
-  def build(data, conn) do
-    base = base_url(conn, data[:base_url])
-
+  def build(data, _conn) do
     data
     |> links()
   end
@@ -62,37 +56,4 @@ defmodule JaSerializer.Builder.PaginationLinks do
      page_number: data[:number],
      page_size: data[:size]]
   end
-
-  defp page_url(number, base, size, orginal_params) do
-    params =
-      orginal_params
-      |> Map.merge(page_params(number, size))
-      |> Plug.Conn.Query.encode
-
-    "#{base}?#{params}"
-  end
-
-  defp page_params(number, size) do
-    case page_key() do
-      nil -> %{page_number_key() => number, page_size_key() => size}
-      key -> %{key => %{page_number_key() => number, page_size_key() => size}}
-    end
-  end
-
-  defp page_key do
-    Application.get_env(:ja_serializer, :page_key, format_key("page"))
-  end
-
-  defp page_number_key do
-    Application.get_env(:ja_serializer, :page_number_key, format_key("number"))
-  end
-
-  defp page_size_key do
-    Application.get_env(:ja_serializer, :page_size_key, format_key("size"))
-  end
-
-  defp base_url(conn, nil) do
-    Application.get_env(:ja_serializer, :page_base_url, conn.request_path)
-  end
-  defp base_url(_conn, url), do: url
 end
